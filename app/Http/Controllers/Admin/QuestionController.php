@@ -2,8 +2,11 @@
 namespace App\Http\Controllers\Admin;
 use App\Question;
 use App\Category;
+use App\Utils\AdminLogger;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+
 /**
  * Class QuestionController
  *
@@ -43,7 +46,8 @@ class QuestionController extends Controller
      */
     public function store(Request $request)
     {
-        Question::create($request->all());
+        $question = Question::create($request->all());
+        AdminLogger::record(Auth::user(), "added {$this->formatQuestionMessage($question)}");
         return redirect()->route('admin.question.index');
     }
     /**
@@ -79,6 +83,7 @@ class QuestionController extends Controller
     public function update(Request $request, Question $question, Category $category)
     {
         $question->update($request->all());
+        AdminLogger::record(Auth::user(), "updated {$this->formatQuestionMessage($question)}");
         return redirect()->route('admin.question.index');
     }
     /**
@@ -90,7 +95,15 @@ class QuestionController extends Controller
     public function destroy(Question $question)
     {
         $question->delete();
-
+        AdminLogger::record(Auth::user(), "deleted {$this->formatQuestionMessage($question)}");
         return redirect()->route('admin.question.index');
+    }
+
+    /**
+     * @param Question $question
+     * @return string
+     */
+    private function formatQuestionMessage(Question $question) {
+        return "question \"{$question->description}\" ({$question->id}) from category \"{$question->category->title}\" ({$question->category->id})";
     }
 }

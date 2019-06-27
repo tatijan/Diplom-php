@@ -1,9 +1,10 @@
 <?php
 namespace App\Http\Controllers\Admin;
-use App\Question;
 use App\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Utils\AdminLogger;
+use Illuminate\Support\Facades\Auth;
 class CategoryController extends Controller
 {
     /**
@@ -39,7 +40,8 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        Category::create($request->all());
+        $category = Category::create($request->all());
+        AdminLogger::record(Auth::user(), "created category {$this->formatCategoryMessage($category)}");
         return redirect()->route('admin.category.index');
     }
     /**
@@ -77,6 +79,7 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $category->update($request->all());
+        AdminLogger::record(Auth::user(), "updated {$this->formatCategoryMessage($category)}");
         return redirect()->route('admin.category.index');
     }
     /**
@@ -88,7 +91,15 @@ class CategoryController extends Controller
     public function destroy(Category $category)
     {
         $category->delete();
-
+        AdminLogger::record(Auth::user(), "deleted {$this->formatCategoryMessage($category)}");
         return redirect()->route('admin.category.index');
+    }
+
+    /**
+     * @param Category $category
+     * @return string
+     */
+    private function formatCategoryMessage(Category $category) {
+        return "category \"{$category->title}\" ($category->id)";
     }
 }
