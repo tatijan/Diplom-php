@@ -1,8 +1,11 @@
 <?php
 namespace App\Http\Controllers\Admin\UserManagment;
 use App\User;
+use App\Utils\AdminLogger;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+
 /**
  * Class UserController
  *
@@ -55,7 +58,7 @@ class UserController extends Controller
                 'password' => 'required|string|min:5|confirmed'
             ]
         );
-        User::create(
+        $user = User::create(
             [
                 'name' => $request['name'],
                 'login' => $request['login'],
@@ -63,6 +66,7 @@ class UserController extends Controller
                 'password' => bcrypt($request['password'])
             ]
         );
+        AdminLogger::record(Auth::user(), "created {$this->formatUserMessage($user)}");
         return redirect()->route('admin.user_managment.user.index');
     }
     /**
@@ -120,6 +124,7 @@ class UserController extends Controller
             $user->password = bcrypt($request['password']);
         }
         $user->save();
+        AdminLogger::record(Auth::user(), "updated {$this->formatUserMessage($user)}");
         return redirect()->route('admin.user_managment.user.index');
     }
     /**
@@ -131,6 +136,15 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $user->delete();
+        AdminLogger::record(Auth::user(), "deleted {$this->formatUserMessage($user)}");
         return redirect()->route('admin.user_managment.user.index');
+    }
+
+    /**
+     * @param User $user
+     * @return string
+     */
+    private function formatUserMessage(User $user) {
+        return "user \"{$user->name}\" ({$user->id})";
     }
 }
