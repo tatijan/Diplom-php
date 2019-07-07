@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers\Admin;
+use App\StopWord;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Category;
@@ -22,12 +23,16 @@ class DashboardController extends Controller
         $questions = Question::get();
         $countNull = Question::nullAnswer()->count();
         $questions2 = Question::isHidden();
+        $blocked = Question::getBlocked();
+        $stopWords = StopWord::get();
 
         return view('admin.dashboard')->with([
             "categories" => $categories,
             'questions' => $questions,
             'countNull' => $countNull,
-            'questions2' => $questions2
+            'questions2' => $questions2,
+            'blocked' => $blocked,
+            'stopWords' => $stopWords,
         ]);
     }
 
@@ -44,7 +49,7 @@ class DashboardController extends Controller
         return view('admin.questions.show', [
             'categories' => Category::get(),
             'request' => $request,
-            'questions' => Question::where('category_id', $request->category)->paginate(10)
+            'questions' => Question::where('category_id', '=', $request->category)->paginate(10)
         ]);
     }
 
@@ -78,7 +83,7 @@ class DashboardController extends Controller
         return view('admin.questions.showNullAnswer', [
             'categories' => Category::get(),
             'request' => $request,
-            'questions' => Question::where('category_id', $request->category)->whereNull('answer')->paginate(10)
+            'questions' => Question::where('category_id', '=', $request->category)->whereNull('answer')->paginate(10)
         ]);
     }
 }

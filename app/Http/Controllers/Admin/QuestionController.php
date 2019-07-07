@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Admin;
 use App\Question;
 use App\Category;
+use App\QuestionStopWords;
 use App\Utils\AdminLogger;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -22,7 +23,10 @@ class QuestionController extends Controller
     public function index()
     {
         return view('admin.questions.index', [
-            'questions' => Question::orderBy('created_at', 'desc')->paginate(10),
+            'questions' => Question::orderBy(
+                'created_at', 'desc')
+                ->where('blocked', '!=', Question::BLOCKED)
+                ->paginate(10),
         ]);
     }
     /**
@@ -47,7 +51,8 @@ class QuestionController extends Controller
     public function store(Request $request)
     {
         $question = Question::create($request->all());
-        AdminLogger::record(Auth::user(), "added {$this->formatQuestionMessage($question)}");
+        $formattedQuestion = $this->formatQuestionMessage($question);
+        AdminLogger::record(Auth::user(), "added {$formattedQuestion}");
         return redirect()->route('admin.question.index');
     }
     /**
@@ -91,6 +96,7 @@ class QuestionController extends Controller
      *
      * @param  \App\Question  $question
      * @return \Illuminate\Http\Response
+     * @throws \Exception
      */
     public function destroy(Question $question)
     {
@@ -105,5 +111,26 @@ class QuestionController extends Controller
      */
     private function formatQuestionMessage(Question $question) {
         return "question \"{$question->description}\" ({$question->id}) from category \"{$question->category->title}\" ({$question->category->id})";
+    }
+
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function unblock(Request $request)
+    {
+        if(!empty($request->id)){
+            $question = Question::find($request->id);
+            if(!empty($question)){
+                QuestionStopWords::unblock($question);
+            } else {
+                return response()->json([
+                    'message' => 'Вопрос не найден или уже разблокирован'
+                ]);
+            }
+
+        }
+        return response()->json($question);
     }
 }

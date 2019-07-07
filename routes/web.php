@@ -20,6 +20,10 @@ Route::group(['prefix'=>'admin', 'namespace'=>'Admin', 'middleware'=>['auth']], 
     Route::match(['get', 'post'], '/showAllNullAnswer', 'DashboardController@showAllNullAnswer')->name('admin.questions.showAllNullAnswer');
     Route::resource('/category', 'CategoryController', ['as'=>'admin']);
     Route::resource('/question', 'QuestionController', ['as'=>'admin']);
-    Route::group(['prefix' => 'user_managment', 'namespace' => 'UserManagment'], function() {Route::resource('/user', 'UserController', ['as' => 'admin.user_managment']);
+    Route::post('/stop-word/add', 'StopWordController@store', ['as' => 'admin'])->name('admin.stopWords.store');
+    Route::post('/stop-word/remove', 'StopWordController@destroy', ['as' => 'admin'])->name('admin.stopWords.delete');
+    Route::post('/question/unblock', 'QuestionController@unblock', ['as' => 'admin'])->name('admin.questions.unblock');
+    Route::group(['prefix' => 'user_managment', 'namespace' => 'UserManagment'], function() {
+        Route::resource('/user', 'UserController', ['as' => 'admin.user_managment']);
     });
 });

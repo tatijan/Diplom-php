@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Category;
 use App\Question;
+use App\QuestionStopWords;
 /**
  * Class IndexController
  *
@@ -20,7 +21,12 @@ class IndexController extends Controller
     {
 
         If ($request->isMethod('post')) {
-            Question::create($request->all());
+            $question = Question::create($request->all());
+
+            $stopWords = QuestionStopWords::checkForStopWords($question);
+            if(!empty($stopWords)) {
+                QuestionStopWords::block($question, $stopWords);
+            }
 
             return redirect()->route('site');
         }

@@ -18,6 +18,7 @@ class CreateQuestionsTable extends Migration
             $table->text('description');
             $table->text('answer')->nullable();
             $table->boolean('published');
+            $table->boolean('blocked')->default(0);
             $table->integer('category_id')->unsigned();
             $table->foreign('category_id')->references('id')->on('categories')->onUpdate('cascade')->onDelete('cascade');
             $table->timestamps();

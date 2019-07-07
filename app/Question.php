@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Question extends Model
 {
+    const BLOCKED = 1;
+    const UNBLOCKED = 0;
+
     // Mass assigned
     protected $fillable = [
         'name',
@@ -15,26 +18,25 @@ class Question extends Model
         'description',
         'answer',
         'category_id',
-        'published'
+        'published',
+        'blocked',
     ];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-
     public function category()
     {
         return $this->belongsTo('App\Category');
-
     }
-    // Возвращает все опубликованные вопросы, которые имеют ненулевое значение поля "ответ"
 
     /**
+     * Возвращает все опубликованные вопросы, которые имеют ненулевое значение поля "ответ"
      * @return \Illuminate\Support\Collection
      */
     public static function published()
     {
-        return Question::where('published', 1)->whereNotNull('answer')->get();
+        return Question::where('published', '!=', 0)->whereNotNull('answer')->get();
     }
     // Возвращает все вопросы, которые имеют нулевое значение поля "ответ"
 
@@ -52,6 +54,24 @@ class Question extends Model
      */
     public static function isHidden()
     {
-        return Question::where('published', 2)->get();
+        return Question::where('published', '=', 2)->get();
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection
+     */
+    public static function getBlocked()
+    {
+        return Question::where('blocked', '=', Question::BLOCKED)->get();
+    }
+
+    public static function unblock($id)
+    {
+        $result = self::find($id);
+        if(empty($result)){
+            throw new \Exception('Вопрос не найден');
+        } else {
+            return true;
+        }
     }
 }

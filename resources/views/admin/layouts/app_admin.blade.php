@@ -119,5 +119,79 @@
 
 <!-- Scripts -->
 <script src="{{ asset('js/app.js') }}"></script>
+<script>
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+    $("#form-add-stop-words").on('click', '#addStopWord', function(e){
+        e.preventDefault();
+        $.ajax({
+            type:'POST',
+            url:'/admin/stop-word/add',
+            data:{name: $("input[name=name]").val()},
+            success:function(data){
+                if(data['exists']){
+                    alert();
+                    return false;
+                }
+                if(data['message']){
+                    alert(data['message']);
+                    return false;
+                }
+                $('tr#stop-word-no-data').detach();
+                $('#stop-words tbody').append(
+                    '<tr data-id='+ data.id +'>' +
+                    '<td class="table-text">' +
+                    '<div>' + data.name + '</div>' +
+                    '</td>' + '<td>' +
+                    '<button class="deleteStopWord btn btn-danger"> ' +
+                    '<i class="fa fa-trash"></i> ' +
+                    '</button></td>' + '</tr>');
+                $("input[name=name]").val('')
+            }
+        });
+    });
+    $("#stop-words").on('click', '.deleteStopWord', function(e){
+        e.preventDefault();
+        let id = $(this).closest('tr').attr('data-id');
+        let rowCount = $('#stop-words tr').length;
+        $.ajax({
+            type:'POST',
+            url:'/admin/stop-word/remove',
+            data:{id: $(this).closest('tr').attr('data-id')},
+            success:function(){
+                $(`tr[data-id=${id}]`).detach();
+                rowCount--;
+                if(rowCount === 0){
+                    $('#stop-words tbody').append(
+                        '<tr id="stop-word-no-data"> ' +
+                        '<td colspan="3" class="text-center"><h2>Данных нет</h2></td> ' +
+                        '</tr>'
+                    );
+                }
+            }
+        });
+    });
+    $("#form-blocked-questions").on('click', '.unblockQuestion', function(e){
+        e.preventDefault();
+        let row = $(this).closest('tr');
+        $.ajax({
+            type:'POST',
+            url:'/admin/question/unblock',
+            data:{id: row.attr('data-id')},
+            success:function(data){
+                if(data.message){
+                    alert(data.message);
+                    return false;
+                } else {
+                    row.detach();
+                }
+
+            }
+        })
+    });
+</script>
 </body>
 </html>
